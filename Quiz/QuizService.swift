@@ -23,7 +23,13 @@ struct QuizQuestion: Identifiable, Decodable {
 
 // OpenAIのAPIを使用してクイズ問題を生成するクラス
 class QuizService {
-    private let apiKey = "" // 自分のAPIキーをここに追加
+    
+    private var apiKey: String {
+        guard let apiKey = Bundle.main.object(forInfoDictionaryKey: "QuizAPIKey") as? String else {
+            fatalError("APIキーが設定されていません。")
+        }
+        return apiKey
+    }
 
     func generateQuizQuestions(category: String, count: Int, completion: @escaping ([QuizQuestion]?, Error?) -> Void) {
         guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {

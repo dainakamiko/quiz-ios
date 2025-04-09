@@ -1,0 +1,8 @@
+# APIキー設定ファイル
+Config.xcconfig
+
+# Xcode
+.DS_Store
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
