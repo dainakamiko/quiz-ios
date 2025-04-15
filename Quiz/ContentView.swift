@@ -15,8 +15,10 @@ struct ContentView: View {
     @State private var currentQuestionIndex = 0
     @State private var userAnswers: [Int] = []
     @State private var quizCompleted = false
+    @State private var questionCount: Int = 5  // デフォルトは5問
     
     let categories = ["地理", "動物", "歴史", "科学"]
+    let questionCountOptions = [3, 5, 10, 15]  // 問題数のオプション
     
     var body: some View {
         NavigationView {
@@ -45,9 +47,25 @@ struct ContentView: View {
                 } else if quizQuestions.isEmpty {
                     // クイズがまだ生成されていない場合
                     VStack {
+                        Text("カテゴリを選択")
+                            .font(.headline)
+                            .padding(.top)
+                        
                         Picker("カテゴリを選択", selection: $category) {
                             ForEach(categories, id: \.self) { category in
                                 Text(category)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding()
+                        
+                        Text("問題数を選択")
+                            .font(.headline)
+                            .padding(.top)
+                        
+                        Picker("問題数を選択", selection: $questionCount) {
+                            ForEach(questionCountOptions, id: \.self) { count in
+                                Text("\(count)問")
                             }
                         }
                         .pickerStyle(SegmentedPickerStyle())
@@ -60,6 +78,7 @@ struct ContentView: View {
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
+                        .padding(.top, 20)
                     }
                     .padding()
                 } else if quizCompleted {
@@ -80,6 +99,8 @@ struct ContentView: View {
                     // クイズの問題と選択肢を表示
                     QuestionView(
                         question: quizQuestions[currentQuestionIndex],
+                        questionNumber: currentQuestionIndex + 1,
+                        totalQuestions: quizQuestions.count,
                         onAnswerSelected: { selectedIndex in
                             // 選択された回答を記録
                             userAnswers.append(selectedIndex)
@@ -99,7 +120,6 @@ struct ContentView: View {
     }
     
     private func loadQuizQuestions() {
-        // 既存のコード
         isLoading = true
         errorMessage = nil
         userAnswers = []
@@ -107,7 +127,7 @@ struct ContentView: View {
         quizCompleted = false
         
         let quizService = QuizService()
-        quizService.generateQuizQuestions(category: category, count: 5) { quizzes, error in
+        quizService.generateQuizQuestions(category: category, count: questionCount) { quizzes, error in
             DispatchQueue.main.async {
                 isLoading = false
                 if let error = error {
@@ -129,12 +149,16 @@ struct ContentView: View {
 // 問題と選択肢表示用のビュー
 struct QuestionView: View {
     let question: QuizQuestion
+    let questionNumber: Int  // 現在の問題番号
+    let totalQuestions: Int  // 全問題数
     let onAnswerSelected: (Int) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("問題")
-                .font(.headline)
+            // 問題番号と進捗を表示
+            Text("問題 \(questionNumber)/\(totalQuestions)")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
                 .padding(.top)
             
             Text(question.question)
@@ -167,7 +191,7 @@ struct QuestionView: View {
     }
 }
 
-// 結果表示用のビュー - 修正版
+// 結果表示用のビュー
 struct ResultView: View {
     let quizQuestions: [QuizQuestion]
     let userAnswers: [Int]
